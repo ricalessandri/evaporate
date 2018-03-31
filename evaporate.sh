@@ -81,9 +81,11 @@ box_Z=88 # to get an initial box dimension of ~80 with CB (Martini 2.2)
  
 # Set flags for mdrun 
 FLAGS='-dlb yes -rdd 1.4'
+NMAX=700
 
 ############################################################################################
 ############################################################################################
+
 
 
 
@@ -137,7 +139,7 @@ if [ "$is_a_start" == "start" ] ; then
    echo "Minimisation (x3), eq (NVT, NPT), and first run"
    $GROMPP -f ../martini_v2.x_new_minimize.mdp  -p SYSTEM_step000.top -c out.gro          -o min_step000.tpr  -po min_step000.mdp -maxwarn 10
    wait
-   srun -n 48 gmx_mpi mdrun $FLAGS -v -deffnm min_step000 >> mdrun.log 2>&1
+   $MDRUN $FLAGS -v -deffnm min_step000 >> mdrun.log 2>&1
    wait
    $GROMPP -f ../martini_v2.x_new_minimize.mdp  -p SYSTEM_step000.top -c min_step000.gro  -o min2_step000.tpr -po min2_step000.mdp -maxwarn 10
    wait
@@ -147,9 +149,6 @@ if [ "$is_a_start" == "start" ] ; then
    wait
    $MDRUN $FLAGS -v -deffnm min3_step000 >> mdrun.log 2>&1
    wait
-   #$GROMPP -f ../martini_v2.x_new_minimize.mdp  -p SYSTEM_step000.top -c min3_step000.gro -o min4_step000.tpr -po min4_step000.mdp -maxwarn 10
-   #wait
-   #srun -n 32 gmx_mpi mdrun $FLAGS -v -deffnm min4_step000 >> mdrun.log 2>&1
    $GROMPP -f ../martini_v2.x_new_eq_NVT.mdp    -p SYSTEM_step000.top -c min3_step000.gro -o NVT_step000.tpr  -po NVT_step000.mdp -maxwarn 10
    wait
    $MDRUN $FLAGS -deffnm NVT_step000 >> mdrun.log 2>&1
@@ -223,9 +222,8 @@ fi
 ##            EVAPORATION               ##
 ##########################################
 i=$starting_i
-nmax=700
 #----------------------------------------------------------------------#
-while [ "$i" -le "$nmax" ]
+while [ "$i" -le "$NMAX" ]
 do
 
 j=$(expr $i + 1)        # "j" = 'next step'
