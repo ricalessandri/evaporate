@@ -3,13 +3,12 @@
 ############################################################################################
 ##                                  evaporate.sh                                          ##
 ############################################################################################
-#                                                                                          #
-# Citation:                                                                                #
-#  - R. Alessandri, J. J. Uusitalo, A. H. de Vries, R. W. A. Havenith, S. J. Marrink,      #
-#    "Bulk Heterojunction Morphologies with Atomistic Resolution from Coarse-Grain         #
-#     Solvent Evaporation Simulations", JACS 2017, 139, 3697 [DOI: 10.1021/jacs.6b11717]   #
-#                                                                                          #
-############################################################################################
+                                                                                            
+# CITATION:                                                                                 
+#  - R. Alessandri, J. J. Uusitalo, A. H. de Vries, R. W. A. Havenith, S. J. Marrink,       
+#    "Bulk Heterojunction Morphologies with Atomistic Resolution from Coarse-Grain          
+#     Solvent Evaporation Simulations", JACS 2017, 139, 3697 [DOI: 10.1021/jacs.6b11717]    
+#                                                                                           
 
 # USE:      ./evaporation.sh      <number_mol1> <number_mol2> [start]
 # USE:      sbatch evaporation.sh <number_mol1> <number_mol2> [start]  (SLURM)
@@ -19,8 +18,8 @@
 # > [start]       = the *optional* third argument "start" tells the script whether you are
 #                   starting an evaporation; if no third argument is given to the script,
 #                   the evaporation will be a restart of a unfinished evaporation 
-
-# List of files that need to be in this folder:
+#
+# List of FILES that need to be in this folder:
 # COORDINATES    :  files indicated as 'mol1_geom_file', 'mol2_geom_file', and 'solv_box'
 #                   (e.g., P3HT_n48.gro, PCBM.gro, box_CB.gro)
 # TOPOLOGY       :  SYSTEM_empty.top and itp files needed
@@ -31,13 +30,28 @@
 ############################################################################################
 
 
-#################################
-##        Load GROMACS 5.x     ##
-#################################
-## module load gromacs/5.x
-## source gromacs5
+############################################################################################
+##       Load and set GROMACS          ##
+#########################################
 
-# Set flags for mdrun (-cpi is set by the script when needed, no need to include it here)
+## module load gromacs/5.x (or later)
+## source gromacs5 (or later)
+
+# Set GMX commands aliases                    #
+INSMOL="srun -n  1 gmx_mpi insert-molecules"
+SOLVATE="srun -n  1 gmx_mpi solvate"
+GROMPP="srun -n 1 gmx_mpi grompp"
+MDRUN="srun gmx_mpi mdrun"
+############################################################################################
+
+
+########################################################
+#SBATCH ...
+#SBATCH ... 
+########################################################
+
+
+# Set flags for mdrun 
 FLAGS='-dlb yes -rdd 1.4'
 # Set working directory
 echo "The job is started here:"
