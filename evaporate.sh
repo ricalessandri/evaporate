@@ -110,8 +110,6 @@ if [ $size_1 -eq 0 -o $size_2 -eq 0 ] ; then
    exit
 fi
 
-
-
 ##########################################
 ## START a new evaporation OR RESTART ? ##
 ##########################################
@@ -222,9 +220,9 @@ fi
 
 
 
-##########################################
-##            EVAPORATION               ##
-##########################################
+#####################
+##   EVAPORATION   ##
+#####################
 i=$starting_i
 #----------------------------------------------------------------------#
 while [ "$i" -le "$NMAX" ]
@@ -320,5 +318,5 @@ i=$(printf "%03d" $i)   # makes sure the new "i" is a 3 digits long variable
 #----------------------------------------------------------------------#
 done
 
+echo "Evaporation not finished yet! Increase number of steps. NMAX currently = " $NMAX
 
-echo "Evaporation not finished yet! Increase number of steps."
