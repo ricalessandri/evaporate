@@ -27,58 +27,80 @@
 # RUN PARAMETERS :  martini_v2.x_new_minimize.mdp, martini_v2.x_new_eq_NVT.mdp, 
 #                   martini_v2.x_new_eq_NPT_semiiso.mdp, martini_v2.x_new_run_semiiso.mdp
  
-############################################################################################
 
-# GROMACS: Load and set GROMACS 
-#
+############################################################################################
+#                             GROMACS: Load and set GROMACS                                # 
+############################################################################################
+ 
 # module load gromacs/5.x (or later)
 # source gromacs5 (or later)
-#
+ 
 # SET GMX COMMANDS aliases
-INSMOL="srun -n  1 gmx_mpi insert-molecules"
-SOLVATE="srun -n  1 gmx_mpi solvate"
-GROMPP="srun -n 1 gmx_mpi grompp"
-MDRUN="srun gmx_mpi mdrun"
-
-############################################################################################
+INSMOL="srun -n  1 gmx_mpi insert-molecules" # Cartesius
+SOLVATE="srun -n  1 gmx_mpi solvate"         # Cartesius
+GROMPP="srun -n 1 gmx_mpi grompp"            # Cartesius
+MDRUN="srun gmx_mpi mdrun"                   # Cartesius
 
 # QUEUEING system:
 #SBATCH ...
 #SBATCH ... 
 
+
+############################################################################################
+#                              System-dependent parameters                                 # 
+############################################################################################
+
+# The following lines will have to be adapted depending on the molecules in the system. 
+# Names are mostly self-explanatory.
+ 
+# Solute molecules
+beads_per_mol1_molecule=288 # P3HT (48-mer)
+beads_per_mol2_molecule=21  # PCBM
+mol1_geom_file=P3HT_n48.gro
+mol2_geom_file=PCBM.gro 
+mol1_name=P3HT
+mol2_name=PCBM
+ 
+# Solvent
+## solv_box=box_CLF.gro
+## solv_name=CLF
+## no_solv_beads=1
+## solv_pattern="CLF     CX"  # grepping CLF molecules
+## solv_density_param=27      # good starting density for CLF (?)
+solv_box=box_CB.gro
+solv_name=CB
+no_solv_beads=3
+solv_pattern="CB      Cl"  # grepping CLBZ molecules
+solv_density_param=18      # good starting density for CB (Martini 2.2)
+ 
+# (Initial) simulation box dimensions
+box_X=30
+box_Y=30
+box_Z=88 # to get an initial box dimension of ~80 with CB (Martini 2.2) 
+#box_Z=80 # CLF
+ 
+# Set flags for mdrun 
+FLAGS='-dlb yes -rdd 1.4'
+
+############################################################################################
 ############################################################################################
 
 
-
-#################################
-## System-dependent parameters ##
-#################################
-# The following four lines will have to be adapted depending on the molecules in the system; names are self-explanatory
-beads_per_polym_molecule=288
-beads_per_fulle_molecule=21
-polym_geom_file=P3HT_n48.gro
-fulle_geom_file=PCBM.gro
-# Simulation box dimensions
-box_X=30
-box_Y=30
-box_Z=88
-# Set flags for mdrun 
-FLAGS='-dlb yes -rdd 1.4'
 
 
 #################
 ## Check INPUT ##
 #################
-# Check if the number of polymer and fullerene molecules has been given
-polym_mol="$1"
-fulle_mol="$2"
-polym_beads=$(expr $polym_mol \* $beads_per_polym_molecule)
-fulle_beads=$(expr $fulle_mol \* $beads_per_fulle_molecule)
-size_1=${#polym_mol}
-size_2=${#polym_mol}
+# Check if the number of molecule_1 and molecule_2 molecules has been given
+number_mol1="$1"
+number_mol2="$2"
+mol1_beads=$(expr $number_mol1 \* $beads_per_mol1_molecule)
+mol2_beads=$(expr $number_mol2 \* $beads_per_mol2_molecule)
+size_1=${#number_mol1}
+size_2=${#number_mol2}
 if [ $size_1 -eq 0 -o $size_2 -eq 0 ] ; then
    echo ""
-   echo "Missing number of polymer and/or fullerene molecules. Check that"
+   echo "Missing number of molecule_1 and/or molecule_2 molecules. Check that"
    exit
 fi
 
@@ -97,43 +119,46 @@ if [ "$is_a_start" == "start" ] ; then
    mkdir step000
    echo "Moving to folder step000"
    cd    step000
-   # Generate a box of P3HT:PCBM:CB
+   # Generate a box of mol1:mol2:solvent
    echo "Generate the initial box"
-   srun -n  1 gmx_mpi insert-molecules -ci ../$polym_geom_file -nmol $polym_mol -box $box_X $box_Y $box_Z  -radius 0.27 # Martini beads radius
+   $INSMOL -ci ../$mol1_geom_file -nmol $number_mol1 -box $box_X $box_Y $box_Z  -radius 0.27 # Martini beads radius
    wait
-   srun -n  1 gmx_mpi insert-molecules -ci ../$fulle_geom_file -f out.gro -nmol $fulle_mol                 -radius 0.27 # Martini beads radius
+   $INSMOL -ci ../$mol2_geom_file -f out.gro -nmol $number_mol2                 -radius 0.27 # Martini beads radius
    wait
-   srun -n  1 gmx_mpi solvate          -cp out.gro -cs ../box_CB.gro                                       -radius 0.18 # leads to a good starting density for CB
+   $SOLVATE          -cp out.gro -cs ../$solv_box                            -radius 0.${solv_density_param}
    wait
-   # Count molecules of CB that are in the box and add this to the TOP file
-   cb_mol=$(grep "CB      Cl" out.gro | wc -l)
+   # Count molecules of solvent that are in the box and add this to the TOP file
+   no_solv_mol=$(grep ${solv_pattern} out.gro | wc -l)
    cp ../SYSTEM_empty.top SYSTEM_step000.top
-   echo "P3HT           $polym_mol" >> SYSTEM_step000.top
-   echo "PCBM           $fulle_mol" >> SYSTEM_step000.top
-   echo "CB             $cb_mol" >> SYSTEM_step000.top
+   echo "${mol1_name}           $number_mol1" >> SYSTEM_step000.top
+   echo "${mol2_name}           $number_mol2" >> SYSTEM_step000.top
+   echo "${solv_name}           $no_solv_mol" >> SYSTEM_step000.top
    # Minimisation, equilibration and first run
-   echo "Minimisation (x4), eq (NVT, NPT), and first run"
-   srun -n 1 gmx_mpi grompp -f ../martini_v2.x_new_minimize.mdp          -p SYSTEM_step000.top -c out.gro          -o min_step000.tpr  -po min_step000.mdp -maxwarn 10
+   echo "Minimisation (x3), eq (NVT, NPT), and first run"
+   $GROMPP -f ../martini_v2.x_new_minimize.mdp  -p SYSTEM_step000.top -c out.gro          -o min_step000.tpr  -po min_step000.mdp -maxwarn 10
    wait
-   srun gmx_mpi mdrun $FLAGS -v -deffnm min_step000 >> mdrun.log 2>&1
-   srun -n 1 gmx_mpi grompp -f ../martini_v2.x_new_minimize.mdp          -p SYSTEM_step000.top -c min_step000.gro  -o min2_step000.tpr -po min2_step000.mdp -maxwarn 10
+   srun -n 48 gmx_mpi mdrun $FLAGS -v -deffnm min_step000 >> mdrun.log 2>&1
    wait
-   srun gmx_mpi mdrun $FLAGS -v -deffnm min2_step000 >> mdrun.log 2>&1
-   srun -n 1 gmx_mpi grompp -f ../martini_v2.x_new_minimize.mdp          -p SYSTEM_step000.top -c min2_step000.gro -o min3_step000.tpr -po min3_step000.mdp -maxwarn 10
+   $GROMPP -f ../martini_v2.x_new_minimize.mdp  -p SYSTEM_step000.top -c min_step000.gro  -o min2_step000.tpr -po min2_step000.mdp -maxwarn 10
    wait
-   srun gmx_mpi mdrun $FLAGS -v -deffnm min3_step000 >> mdrun.log 2>&1
-   srun -n 1 gmx_mpi grompp -f ../martini_v2.x_new_minimize.mdp          -p SYSTEM_step000.top -c min3_step000.gro -o min4_step000.tpr -po min4_step000.mdp -maxwarn 10
+   $MDRUN $FLAGS -v -deffnm min2_step000 >> mdrun.log 2>&1
    wait
-   srun gmx_mpi mdrun $FLAGS -v -deffnm min4_step000 >> mdrun.log 2>&1
-   srun -n 1 gmx_mpi grompp -f ../martini_v2.x_new_eq_NVT.mdp           -p SYSTEM_step000.top -c min4_step000.gro -o NVT_step000.tpr  -po NVT_step000.mdp -maxwarn 10
+   $GROMPP -f ../martini_v2.x_new_minimize.mdp  -p SYSTEM_step000.top -c min2_step000.gro -o min3_step000.tpr -po min3_step000.mdp -maxwarn 10
    wait
-   srun gmx_mpi mdrun $FLAGS -deffnm NVT_step000 >> mdrun.log 2>&1
-   srun -n 1 gmx_mpi grompp -f ../martini_v2.x_new_eq_NPT_semiiso.mdp   -p SYSTEM_step000.top -c NVT_step000.gro  -o NPT_step000.tpr  -po NPT_step000.mdp -maxwarn 10
+   $MDRUN $FLAGS -v -deffnm min3_step000 >> mdrun.log 2>&1
    wait
-   srun gmx_mpi mdrun $FLAGS -deffnm NPT_step000 >> mdrun.log 2>&1
-   srun -n 1 gmx_mpi grompp -f ../martini_v2.x_new_run_semiiso.mdp       -p SYSTEM_step000.top -c NPT_step000.gro  -o run_step000.tpr  -po run_step000.mdp -maxwarn 10
+   #$GROMPP -f ../martini_v2.x_new_minimize.mdp  -p SYSTEM_step000.top -c min3_step000.gro -o min4_step000.tpr -po min4_step000.mdp -maxwarn 10
+   #wait
+   #srun -n 32 gmx_mpi mdrun $FLAGS -v -deffnm min4_step000 >> mdrun.log 2>&1
+   $GROMPP -f ../martini_v2.x_new_eq_NVT.mdp    -p SYSTEM_step000.top -c min3_step000.gro -o NVT_step000.tpr  -po NVT_step000.mdp -maxwarn 10
    wait
-   srun gmx_mpi mdrun $FLAGS -deffnm run_step000 >> mdrun.log 2>&1
+   $MDRUN $FLAGS -deffnm NVT_step000 >> mdrun.log 2>&1
+   $GROMPP -f ../martini_v2.x_new_eq_NPT_semiiso.mdp  -p SYSTEM_step000.top -c NVT_step000.gro  -o NPT_step000.tpr  -po NPT_step000.mdp -maxwarn 10
+   wait
+   $MDRUN $FLAGS -deffnm NPT_step000 >> mdrun.log 2>&1
+   $GROMPP -f ../martini_v2.x_new_run_semiiso.mdp  -p SYSTEM_step000.top -c NPT_step000.gro  -o run_step000.tpr  -po run_step000.mdp -maxwarn 10
+   wait
+   $MDRUN $FLAGS -deffnm run_step000 >> mdrun.log 2>&1
    #
    touch finished
    # Define where to start the evaporation loop from (i.e., step000, since it's a start)
@@ -188,7 +213,7 @@ else
 ## Error !   ##
 ###############
    echo "If you want to start a new evaporation process pass "start" (as third argument) to the script."
-   echo "If you want to restart a unfinished evaporation process pass no arguments after the number of polymer and fullerene molecules."
+   echo "If you want to restart a unfinished evaporation process pass no arguments after the number of molecule_1 and molecule_2 molecules."
    exit
 fi
 
@@ -211,17 +236,17 @@ if [ "$checkpoint_restart" != "yes" ] ; then
 ######################################################
 ## 1a. Setting up a new step: checks                ##
 ######################################################
-   cb_mol=$(grep "CB      Cl" run_step$i.gro | wc -l) # how many solvent molecules
+   no_solv_mol=$(grep ${solv_pattern} run_step$i.gro | wc -l) # how many solvent molecules
    # Check grep: if grep not succeeded, exit
-   grep -q "CB      Cl" run_step$i.gro
-   grepres=$? # if=0 -> OK, if=1 -> nothing matched "CB      Cl", if=2 -> file not found
+   grep -q ${solv_pattern} run_step$i.gro
+   grepres=$? # if=0 -> OK, if=1 -> nothing matched ${solv_pattern}, if=2 -> file not found
    if [ $grepres != 0 ] ; then
       echo "Something went wrong."
-      echo "Either the file has not been found or there are no CB molecules in the previous-step GRO file."
+      echo "Either the file has not been found or there are no solvent molecules in the previous-step GRO file."
       exit
    fi
    # Print the number of lines in the current GRO and the last line number (for checking)
-   n_lines=$(( 2 + $polym_beads + $fulle_beads + 3 * $cb_mol))
+   n_lines=$(( 2 + $mol1_beads + $mol2_beads + $no_solv_beads * $no_solv_mol))
    echo "number of lines in the current GRO" $n_lines "+1"
    n_last_line=$(expr $n_lines + 1)
    echo "the last line is line number" $n_last_line 
@@ -232,23 +257,23 @@ if [ "$checkpoint_restart" != "yes" ] ; then
    mkdir ../step$j
 
 # Compute how many solvent molecules have to be removed and generate next GRO without those molecules
-   evaporated=$(expr $cb_mol / 80) # let's remove 1.25% of the solvent
+   evaporated=$(expr $no_solv_mol / 80) # let's remove 1.25% of the solvent
    if [ $evaporated -lt 10 ] ; then
       evaporated=10
    fi
-   echo $evaporated "CB molecules have evaporated"
-   n_lines=$(( $n_lines - 3 * $evaporated))
+   echo $evaporated " solvent molecules have evaporated"
+   n_lines=$(( $n_lines - $no_solv_beads * $evaporated))
    echo "number of lines in the new GRO" $n_lines "+1"
    echo "run_step$i.gro"
    sed -n '1,'$n_lines' p' run_step$i.gro > ../step$j/start_step$j.gro
    # Has the evaporation finished?
-   cb_mol=$(expr $cb_mol - $evaporated)
-   if [ $cb_mol -lt 1 ] ; then
+   no_solv_mol=$(expr $no_solv_mol - $evaporated)
+   if [ $no_solv_mol -lt 1 ] ; then
       echo "evaporation has finished (step number" $i ")"
       exit
    fi
    # Change the number of atoms in the (second line of the) new GRO file accordingly
-   n_atoms=$(( $polym_beads + $fulle_beads + 3 * $cb_mol))
+   n_atoms=$(( $mol1_beads + $mol2_beads +$no_solv_beads* $no_solv_mol))
    sed -i '2 c\  '$n_atoms' ' ../step$j/start_step$j.gro
    # Add the box size to the new GRO file
    sed -n ''$n_last_line' p' run_step$i.gro >> ../step$j/start_step$j.gro
@@ -257,16 +282,16 @@ if [ "$checkpoint_restart" != "yes" ] ; then
    cd ../step$j
    # Generate the new TOP file
    cp ../SYSTEM_empty.top SYSTEM_step$j.top
-   echo "P3HT           $polym_mol" >> SYSTEM_step$j.top
-   echo "PCBM           $fulle_mol" >> SYSTEM_step$j.top
-   echo "CB             $cb_mol"    >> SYSTEM_step$j.top
+   echo "${mol1_name}           $number_mol1" >> SYSTEM_step$j.top
+   echo "${mol2_name}           $number_mol2" >> SYSTEM_step$j.top
+   echo "${solv_name}           $no_solv_mol" >> SYSTEM_step$j.top
 
    ### NPT equilibration before run ###
-   srun -n 1 gmx_mpi grompp -f ../martini_v2.x_new_eq_NPT_semiiso.mdp    -p SYSTEM_step$j.top -c start_step$j.gro -o NPT_step$j.tpr  -po NPT_step$j.mdp -maxwarn 10
+   $GROMPP -f ../martini_v2.x_new_eq_NPT_semiiso.mdp -p SYSTEM_step$j.top -c start_step$j.gro -o NPT_step$j.tpr -po NPT_step$j.mdp -maxwarn 10
    wait
-   srun gmx_mpi mdrun $FLAGS -deffnm NPT_step$j >> mdrun.log 2>&1
+   $MDRUN $FLAGS -deffnm NPT_step$j >> mdrun.log 2>&1
    ### 
-   srun -n 1 gmx_mpi grompp -f ../martini_v2.x_new_run_semiiso.mdp       -p SYSTEM_step$j.top -c NPT_step$j.gro -o run_step$j.tpr -po run_step$j.mdp -maxwarn 10
+   $GROMPP -f ../martini_v2.x_new_run_semiiso.mdp    -p SYSTEM_step$j.top -c NPT_step$j.gro -o run_step$j.tpr -po run_step$j.mdp -maxwarn 10
    wait
 
 
@@ -279,13 +304,10 @@ else
    echo "Run step number" $j "from checkpoint"
 fi
 
-srun gmx_mpi mdrun $FLAGS -cpi run_step${j}_prev.cpt -deffnm run_step$j >> mdrun.log 2>&1
+$MDRUN $FLAGS -cpi run_step${j}_prev.cpt -deffnm run_step$j >> mdrun.log 2>&1
 
-# remove trajectory files if step != step000 (optional)
-#if [ $j != 0 ]; then
-#   rm *_step$j.xtc  *_step$j.trr
-#fi
-#rm \#*
+# remove trajectory files 
+rm *_step$j.xtc  *_step$j.trr \#*
 
 touch finished
 checkpoint_restart="no"
