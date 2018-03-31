@@ -29,33 +29,25 @@
  
 ############################################################################################
 
-
-############################################################################################
-##       Load and set GROMACS          ##
-#########################################
-
-## module load gromacs/5.x (or later)
-## source gromacs5 (or later)
-
-# Set GMX commands aliases                    #
+# GROMACS: Load and set GROMACS 
+#
+# module load gromacs/5.x (or later)
+# source gromacs5 (or later)
+#
+# SET GMX COMMANDS aliases
 INSMOL="srun -n  1 gmx_mpi insert-molecules"
 SOLVATE="srun -n  1 gmx_mpi solvate"
 GROMPP="srun -n 1 gmx_mpi grompp"
 MDRUN="srun gmx_mpi mdrun"
+
 ############################################################################################
 
-
-########################################################
+# QUEUEING system:
 #SBATCH ...
 #SBATCH ... 
-########################################################
 
+############################################################################################
 
-# Set flags for mdrun 
-FLAGS='-dlb yes -rdd 1.4'
-# Set working directory
-echo "The job is started here:"
-pwd
 
 
 #################################
@@ -70,6 +62,8 @@ fulle_geom_file=PCBM.gro
 box_X=30
 box_Y=30
 box_Z=88
+# Set flags for mdrun 
+FLAGS='-dlb yes -rdd 1.4'
 
 
 #################
