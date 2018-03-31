@@ -1,18 +1,34 @@
 #!/bin/bash
 
-# USE:      ./evaporation.sh <polym_mol> <fulle_mol> [start]
-# USE:      sbatch evaporation.sh <polym_mol> <fulle_mol> [start]  (SLURM)
+############################################################################################
+##                                  evaporate.sh                                          ##
+############################################################################################
+#                                                                                          #
+# Citation:                                                                                #
+#  - R. Alessandri, J. J. Uusitalo, A. H. de Vries, R. W. A. Havenith, S. J. Marrink,      #
+#    "Bulk Heterojunction Morphologies with Atomistic Resolution from Coarse-Grain         #
+#     Solvent Evaporation Simulations", JACS 2017, 139, 3697 [DOI: 10.1021/jacs.6b11717]   #
+#                                                                                          #
+############################################################################################
+
+# USE:      ./evaporation.sh      <number_mol1> <number_mol2> [start]
+# USE:      sbatch evaporation.sh <number_mol1> <number_mol2> [start]  (SLURM)
 #  
-# > <polym_mol> = number of polymer   molecules you want in the system
-# > <fulle_mol> = number of fullerene molecules you want in the system
-# > [start]     = the *optional* third argument "start" tells the script whether you are
-#                 starting an evaporation; if no third argument is given to the script,
-#                 the evaporation will be a restart of a unfinished evaporation 
+# > <number_mol1> = number of mol1 molecules you want in the system
+# > <number_mol2> = number of mol2 molecules you want in the system
+# > [start]       = the *optional* third argument "start" tells the script whether you are
+#                   starting an evaporation; if no third argument is given to the script,
+#                   the evaporation will be a restart of a unfinished evaporation 
 
 # List of files that need to be in this folder:
-# COORDINATES    :  P3HT_n48.gro, PCBM.gro, box_CB.gro
-# TOPOLOGY       :  SYSTEM_empty.top, PCBM.itp, P3HT_n48.itp, martini_v2.2_CNP.itp
-# RUN PARAMETERS :  martini_v2.x_new_minimize.mdp, martini_v2.x_new_eq_NVT.mdp, martini_v2.x_new_eq_NPT_semiiso.mdp, martini_v2.x_new_run_semiiso.mdp
+# COORDINATES    :  files indicated as 'mol1_geom_file', 'mol2_geom_file', and 'solv_box'
+#                   (e.g., P3HT_n48.gro, PCBM.gro, box_CB.gro)
+# TOPOLOGY       :  SYSTEM_empty.top and itp files needed
+#                   (e.g., PCBM.itp, P3HT_n48.itp, martini_v2.2_CNP.itp, martini_v2.0_solvents.itp) 
+# RUN PARAMETERS :  martini_v2.x_new_minimize.mdp, martini_v2.x_new_eq_NVT.mdp, 
+#                   martini_v2.x_new_eq_NPT_semiiso.mdp, martini_v2.x_new_run_semiiso.mdp
+ 
+############################################################################################
 
 
 #################################
@@ -21,7 +37,7 @@
 ## module load gromacs/5.x
 ## source gromacs5
 
-# Set flags for mdrun (-cpi is set by the script when needed, no need to to include it here)
+# Set flags for mdrun (-cpi is set by the script when needed, no need to include it here)
 FLAGS='-dlb yes -rdd 1.4'
 # Set working directory
 echo "The job is started here:"
