@@ -87,6 +87,10 @@ NMAX=700
 ############################################################################################
 
 
+# TODO:
+# - remove hardcoded 700 (must be = to NMAX)
+# - control printing of XTC files via a flag (now, default is not to produce them;
+#   (could be just controlled via the mdps..!)
 
 
 
