@@ -5,6 +5,9 @@ Solvent evaporation protocol implemented as a bash script (which assumes the use
 
 If you find this useful please cite [JACS 139 (10), 3697-3705](https://pubs.acs.org/doi/abs/10.1021/jacs.6b11717).
 
+------
+![alt text](./images/banner-opv-03.png "P3HT:PCBM blend")
+------
 
 ## License
 
