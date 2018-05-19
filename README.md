@@ -26,3 +26,5 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 </code></pre>
+
+The [full text of the license](https://github.com/ricalessandri/evaporate/blob/master/LICENSE) is available in the source repository.
