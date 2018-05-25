@@ -135,7 +135,7 @@ if [ "$is_a_start" == "start" ] ; then
    $SOLVATE          -cp out.gro -cs ../$solv_box                            -radius 0.${solv_density_param}
    wait
    # Count molecules of solvent that are in the box and add this to the TOP file
-   no_solv_mol=$(grep ${solv_pattern} out.gro | wc -l)
+   no_solv_mol=$(grep "${solv_pattern}" out.gro | wc -l)
    cp ../SYSTEM_empty.top SYSTEM_step000.top
    echo "${mol1_name}           $number_mol1" >> SYSTEM_step000.top
    echo "${mol2_name}           $number_mol2" >> SYSTEM_step000.top
