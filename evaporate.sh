@@ -28,9 +28,14 @@
 #                   martini_v2.x_new_eq_NPT_semiiso.mdp, martini_v2.x_new_run_semiiso.mdp
  
 
+
 ############################################################################################
 #                             GROMACS: Load and set GROMACS                                # 
 ############################################################################################
+
+# QUEUEING system:
+#SBATCH ...
+#SBATCH ... 
  
 # module load gromacs/5.x (or later)
 # source gromacs5 (or later)
@@ -41,9 +46,6 @@ SOLVATE="srun -n  1 gmx_mpi solvate"         # Cartesius
 GROMPP="srun -n 1 gmx_mpi grompp"            # Cartesius
 MDRUN="srun gmx_mpi mdrun"                   # Cartesius
 
-# QUEUEING system:
-#SBATCH ...
-#SBATCH ... 
 
 
 ############################################################################################
@@ -91,6 +93,7 @@ NMAX=700
 # - remove hardcoded 700 (must be = to NMAX)
 # - control printing of XTC files via a flag (now, default is not to produce them;
 #   could be just controlled via the mdps (using a SED command or so, for example))
+
 
 
 
