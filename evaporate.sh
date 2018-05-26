@@ -239,10 +239,10 @@ if [ "$checkpoint_restart" != "yes" ] ; then
 ######################################################
 ## 1a. Setting up a new step: checks                ##
 ######################################################
-   no_solv_mol=$(grep ${solv_pattern} run_step$i.gro | wc -l) # how many solvent molecules
+   no_solv_mol=$(grep "${solv_pattern}" run_step$i.gro | wc -l) # how many solvent molecules
    # Check grep: if grep not succeeded, exit
-   grep -q ${solv_pattern} run_step$i.gro
-   grepres=$? # if=0 -> OK, if=1 -> nothing matched ${solv_pattern}, if=2 -> file not found
+   grep -q "${solv_pattern}" run_step$i.gro
+   grepres=$? # if=0 -> OK, if=1 -> nothing matched "${solv_pattern}", if=2 -> file not found
    if [ $grepres != 0 ] ; then
       echo "Something went wrong."
       echo "Either the file has not been found or there are no solvent molecules in the previous-step GRO file."
