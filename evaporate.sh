@@ -257,24 +257,28 @@ if [ "$checkpoint_restart" != "yes" ] ; then
 #####################################################
 ## 1b. Setting up a new step: prepare input files  ##
 #####################################################
-   mkdir ../step$j
-
-# Compute how many solvent molecules have to be removed and generate next GRO without those molecules
+   # Compute how many solvent molecules have to be removed and generate next GRO without those molecules
    evaporated=$(expr $no_solv_mol / 80) # let's remove 1.25% of the solvent
    if [ $evaporated -lt 10 ] ; then
       evaporated=10
+      if [ $no_solv_mol -lt 10 ] ; then
+         evaporated=${no_solv_mol}
+         # Hold on, has the evaporation finished?
+         if [ $no_solv_mol -lt 1 ] ; then
+            echo "evaporation has finished (step number" $i ")"
+            exit
+         fi
+      fi
    fi
+
+   # Set up the next step
+   mkdir ../step$j
+   no_solv_mol=$(expr $no_solv_mol - $evaporated)
    echo $evaporated " solvent molecules have evaporated"
    n_lines=$(( $n_lines - $no_solv_beads * $evaporated))
    echo "number of lines in the new GRO" $n_lines "+1"
    echo "run_step$i.gro"
    sed -n '1,'$n_lines' p' run_step$i.gro > ../step$j/start_step$j.gro
-   # Has the evaporation finished?
-   no_solv_mol=$(expr $no_solv_mol - $evaporated)
-   if [ $no_solv_mol -lt 1 ] ; then
-      echo "evaporation has finished (step number" $i ")"
-      exit
-   fi
    # Change the number of atoms in the (second line of the) new GRO file accordingly
    n_atoms=$(( $mol1_beads + $mol2_beads +$no_solv_beads* $no_solv_mol))
    sed -i '2 c\  '$n_atoms' ' ../step$j/start_step$j.gro
