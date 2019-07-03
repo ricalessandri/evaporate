@@ -266,6 +266,7 @@ if [ "$checkpoint_restart" != "yes" ] ; then
          # Hold on, has the evaporation finished?
          if [ $no_solv_mol -lt 1 ] ; then
             echo "evaporation has finished (step number" $i ")"
+            touch evaporation_is_DONE
             exit
          fi
       fi
