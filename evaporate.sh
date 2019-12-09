@@ -43,7 +43,7 @@
 # SET GMX COMMANDS aliases
 INSMOL="srun -n  1 gmx_mpi insert-molecules" # Cartesius
 SOLVATE="srun -n  1 gmx_mpi solvate"         # Cartesius
-GROMPP="srun -n 1 gmx_mpi grompp"            # Cartesius
+GROMPP="srun -n 1 gmx_mpi grompp -normvsbds" # Cartesius ("-normvsbds" needed because of https://www.mail-archive.com/gromacs.org_gmx-users@maillist.sys.kth.se/msg35762.html) 
 MDRUN="srun gmx_mpi mdrun"                   # Cartesius
 
 
