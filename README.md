@@ -1,7 +1,7 @@
 # evaporate
 Generate soft matter blends via simulated solvent evaporation
 
-Solvent evaporation protocol implemented as a bash script (which assumes the use of GROMACS) used to produce soft matter morphologies as described in [JACS **2017**, 139, 3697-3705](https://pubs.acs.org/doi/abs/10.1021/jacs.6b11717). All the files required to run the evaporation of [JACS **2017**, 139, 3697-3705](https://pubs.acs.org/doi/abs/10.1021/jacs.6b11717) can be found at [the Martini portal](http://cgmartini.nl/index.php/simulated-evaporation-and-scattering).
+Solvent evaporation protocol implemented as a bash script (which assumes the use of GROMACS) used to produce soft matter morphologies as described in [JACS **2017**, 139, 3697-3705](https://pubs.acs.org/doi/abs/10.1021/jacs.6b11717). All the files required to run the evaporation of [JACS **2017**, 139, 3697-3705](https://pubs.acs.org/doi/abs/10.1021/jacs.6b11717) and [JMCA **2017**, 5, 21234-21241](https://pubs.rsc.org/en/content/articlelanding/2017/ta/c7ta06609k) can be found at [the Martini portal](http://cgmartini.nl/index.php/simulated-evaporation-and-scattering).
 
 If you find this useful please cite [JACS **2017**, 139, 3697-3705](https://pubs.acs.org/doi/abs/10.1021/jacs.6b11717).
 
