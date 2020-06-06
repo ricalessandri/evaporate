@@ -9,6 +9,12 @@ If you find this useful please cite [JACS **2017**, 139, 3697-3705](https://pubs
 ![alt text](./images/banner-opv-03.png "P3HT:PCBM blend")
 ------
 
+Some morphologies (from 
+[JACS **2017**, 139, 3697-3705](https://pubs.acs.org/doi/abs/10.1021/jacs.6b11717) 
+and [Chemrxiv **2020**](https://doi.org/10.26434/chemrxiv.12277931))
+are available on [Figshare](https://doi.org/10.6084/m9.figshare.12338633).
+
+
 ## License
 
 <pre><code>
